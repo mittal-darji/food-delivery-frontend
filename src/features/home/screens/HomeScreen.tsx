@@ -21,12 +21,9 @@ import HomeFooter from '../components/Homefooter';
 
 // ── Screens ───────────────────────────────────────────────────────────────────
 import RestaurantListScreen from './Restaurantlistscreen';
-// import HotelFoodPage from './HotelFoodpage';
+import HotelFoodMenuScreen from '../../HotelFoodMenu/screens/HotelFoodMenuScreen';
 import { RestaurantCardData } from '../components/Restaurantcard';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PALETTE
-// ─────────────────────────────────────────────────────────────────────────────
 const C = {
   primary: '#F5C518',
   primaryLight: '#FEFDDF',
@@ -47,9 +44,6 @@ const C = {
   bgLight: '#FEFDDF',
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DATA
-// ─────────────────────────────────────────────────────────────────────────────
 const FOOD_CARDS: RestaurantCardData[] = [
   {
     id: 1,
@@ -300,11 +294,7 @@ const FOOD_CARDS: RestaurantCardData[] = [
   },
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HOME SCREEN (main export)
-// ─────────────────────────────────────────────────────────────────────────────
 export default function HomeScreen() {
-  // ── State ──────────────────────────────────────────────────────────────────
   const [activeCat, setActiveCat] = useState(0);
   const [activeFilter, setActiveFilter] = useState('all');
   const [activeSort, setActiveSort] = useState('default');
@@ -317,7 +307,6 @@ export default function HomeScreen() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [catModalVisible, setCatModalVisible] = useState(false);
 
-  // ── Wishlist toggle ────────────────────────────────────────────────────────
   const toggleWishlist = (id: number) => {
     setWishlist(prev => {
       const next = new Set(prev);
@@ -327,7 +316,6 @@ export default function HomeScreen() {
     });
   };
 
-  // ── Filtered + sorted data ─────────────────────────────────────────────────
   const filtered = useMemo(() => {
     let result = FOOD_CARDS.filter(c => {
       if (activeCat !== 0 && c.category !== activeCat) return false;
@@ -360,14 +348,20 @@ export default function HomeScreen() {
 
   const featured = useMemo(() => FOOD_CARDS.filter(c => c.featured), []);
 
-  // // ── If detail page is open ─────────────────────────────────────────────────
-  // if (selectedCard) {
-  //   return (
-  //     <HotelFoodPage card={selectedCard} onBack={() => setSelectedCard(null)} />
-  //   );
-  // }
+  if (selectedCard) {
+    return (
+      <HotelFoodMenuScreen
+        initialItem={{
+          ...selectedCard.menuItems[0],
+          isVeg: selectedCard.isVeg,
+          category: String(selectedCard.category),
+          offer: selectedCard.offer,
+        }}
+        onBack={() => setSelectedCard(null)}
+      />
+    );
+  }
 
-  // ── Main render ────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={S.safeArea}>
       <StatusBar
@@ -376,7 +370,6 @@ export default function HomeScreen() {
         translucent
       />
 
-      {/* ── Modals / Drawers ── */}
       <LeftDrawer visible={drawerOpen} onClose={() => setDrawerOpen(false)} />
       <AllCategoriesModal
         visible={catModalVisible}
@@ -469,7 +462,6 @@ export default function HomeScreen() {
         {/* 6 ── FOOTER */}
         <HomeFooter />
 
-        {/* Bottom nav spacer */}
         <View style={{ height: 90 }} />
       </ScrollView>
 
@@ -479,9 +471,6 @@ export default function HomeScreen() {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// STYLES
-// ─────────────────────────────────────────────────────────────────────────────
 const S = StyleSheet.create({
   safeArea: { flex: 1 },
   scroll: { flex: 1 },

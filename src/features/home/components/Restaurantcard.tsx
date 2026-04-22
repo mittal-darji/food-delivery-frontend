@@ -14,6 +14,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import VegBadge from './Vegbadge';
 import FoodItemCard from './Fooditemcard';
+import WishlistBtn from '../../../components/WishlistBtn/WishlistBtn';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -115,7 +116,6 @@ export default function RestaurantCard({
             />
             <Text style={S.offerText}>{card.offer}</Text>
           </View>
-
           <View style={S.vegSection}>
             <View style={S.topMetaRow}>
               <VegBadge isVeg={card.isVeg} />
@@ -123,21 +123,14 @@ export default function RestaurantCard({
           </View>
         </View>
 
-        {/* Wishlist button */}
-        <TouchableOpacity
-          style={[S.wishlistBtn, isWishlisted && S.wishlistBtnActive]}
-          onPress={e => {
-            e.stopPropagation();
-            onWishlistToggle();
-          }}
-          activeOpacity={0.85}
-        >
-          <Ionicons
-            name={isWishlisted ? 'heart' : 'heart-outline'}
-            size={18}
-            color={isWishlisted ? C.red : C.white}
-          />
-        </TouchableOpacity>
+        {/* ── WishlistBtn component ── */}
+        <WishlistBtn
+          isWishlisted={isWishlisted}
+          onToggle={onWishlistToggle}
+          size="md"
+          variant="overlay"
+          style={S.wishlistBtnPos}
+        />
 
         {/* Dot indicators */}
         <View style={S.dotRow}>
@@ -159,7 +152,6 @@ export default function RestaurantCard({
 
       {/* ── CARD BODY ── */}
       <View style={S.cardBody}>
-        {/* Delivery time & Veg badge */}
         <View>
           {/* Restaurant row: thumbnail left, info right */}
           <View style={S.restaurantRow}>
@@ -167,7 +159,6 @@ export default function RestaurantCard({
               source={{ uri: card.restaurantImage }}
               style={S.restaurantThumb}
             />
-
             <View style={S.restaurantInfo}>
               {/* Restaurant name */}
               <Text style={S.restaurantName} numberOfLines={1}>
@@ -280,22 +271,19 @@ const S = StyleSheet.create({
   },
   offerText: { fontSize: 9, fontWeight: '900', color: C.ink },
 
-  wishlistBtn: {
+  // position only — styling handled inside WishlistBtn
+  wishlistBtnPos: {
     position: 'absolute',
     top: 10,
     right: 10,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.38)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.25)',
   },
-  wishlistBtnActive: {
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    borderColor: '#FCA5A5',
+
+  vegSection: { position: 'absolute', right: '2%', top: '370%' },
+  topMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
   },
 
   dotRow: {
@@ -312,15 +300,6 @@ const S = StyleSheet.create({
   // ── Card body ───────────────────────────────────────────
   cardBody: { padding: 14, paddingBottom: 16 },
 
-  vegSection: { position: 'absolute', right: '2%', top: '370%' },
-
-  topMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-
   deliveryPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -334,7 +313,6 @@ const S = StyleSheet.create({
   deliveryPillText: { color: C.slate, fontSize: 11, fontWeight: '700' },
 
   // ── Restaurant row ──────────────────────────────────────
-
   restaurantRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -348,10 +326,7 @@ const S = StyleSheet.create({
     backgroundColor: C.border,
     marginTop: 2,
   },
-  restaurantInfo: {
-    flex: 1,
-    gap: 5,
-  },
+  restaurantInfo: { flex: 1, gap: 5 },
   restaurantName: {
     fontSize: 15,
     fontWeight: '900',
@@ -365,16 +340,8 @@ const S = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  metaValue: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: C.slate,
-  },
-  metaMuted: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: C.muted,
-  },
+  metaValue: { fontSize: 12, fontWeight: '700', color: C.slate },
+  metaMuted: { fontSize: 12, fontWeight: '500', color: C.muted },
   metaDot: {
     width: 3,
     height: 3,
@@ -395,16 +362,8 @@ const S = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  priceLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: C.muted,
-  },
-  priceValue: {
-    fontSize: 15,
-    fontWeight: '900',
-    color: C.primaryDark,
-  },
+  priceLabel: { fontSize: 12, fontWeight: '600', color: C.muted },
+  priceValue: { fontSize: 15, fontWeight: '900', color: C.primaryDark },
 
   // ── Menu scroll ─────────────────────────────────────────
   menuScrollLabel: {
