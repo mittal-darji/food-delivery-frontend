@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   SafeAreaView,
   StatusBar,
@@ -21,8 +21,10 @@ import HomeFooter from '../components/Homefooter';
 
 // ── Screens ───────────────────────────────────────────────────────────────────
 import RestaurantListScreen from './Restaurantlistscreen';
-import HotelFoodMenuScreen from '../../HotelFoodMenu/screens/HotelFoodMenuScreen';
+// import HotelFoodMenuScreen from '../../HotelFoodMenu/screens/HotelFoodMenuScreen';
 import { RestaurantCardData } from '../components/Restaurantcard';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const C = {
   primary: '#F5C518',
@@ -294,7 +296,9 @@ const FOOD_CARDS: RestaurantCardData[] = [
   },
 ];
 
-export default function HomeScreen() {
+function HomeScreen() {
+    const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  
   const [activeCat, setActiveCat] = useState(0);
   const [activeFilter, setActiveFilter] = useState('all');
   const [activeSort, setActiveSort] = useState('default');
@@ -349,18 +353,27 @@ export default function HomeScreen() {
   const featured = useMemo(() => FOOD_CARDS.filter(c => c.featured), []);
 
   if (selectedCard) {
-    return (
-      <HotelFoodMenuScreen
-        initialItem={{
-          ...selectedCard.menuItems[0],
-          isVeg: selectedCard.isVeg,
-          category: String(selectedCard.category),
-          offer: selectedCard.offer,
-        }}
-        onBack={() => setSelectedCard(null)}
-      />
-    );
+    // return (
+      // <HotelFoodMenuScreen
+      //   initialItem={{
+      //     ...selectedCard.menuItems[0],
+      //     isVeg: selectedCard.isVeg,
+      //     category: String(selectedCard.category),
+      //     offer: selectedCard.offer,
+      //   }}
+      //   onBack={() => setSelectedCard(null)}
+      // />
+      navigation.navigate("HotelFoodMenu", {
+  initialItem: {
+    ...selectedCard.menuItems[0],
+    isVeg: selectedCard.isVeg,
+    category: String(selectedCard.category),
+    offer: selectedCard.offer,
   }
+})
+   
+  // );
+ }
 
   return (
     <SafeAreaView style={S.safeArea}>
@@ -507,3 +520,5 @@ const S = StyleSheet.create({
   sectionTitle: { fontSize: 16, fontWeight: '900', color: C.ink },
   seeAll: { fontSize: 11, color: C.primaryDark, fontWeight: '700' },
 });
+
+export default HomeScreen;

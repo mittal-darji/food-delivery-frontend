@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CategoryCard from './Categorycard';
+import heroImage from "../../../../assets/HomeScreen/home-header-bg.jpg";
 
 const C = {
   primary: '#F5C518',
@@ -94,10 +95,9 @@ export default function HeroHeader({
 
   return (
     <View style={S.headerBg}>
+       
       <ImageBackground
-        source={{
-          uri: 'https://img.freepik.com/premium-photo/delicious-burger-studio-very-detailed-hamburger-floating-black-background_1001840-13254.jpg?w=360',
-        }}
+        source={heroImage}
         blurRadius={1}
         resizeMode="cover"
       >
