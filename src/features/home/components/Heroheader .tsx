@@ -11,7 +11,11 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CategoryCard from './Categorycard';
+<<<<<<< HEAD
 import heroImage from "../../../../assets/HomeScreen/home-header-bg.jpg";
+=======
+import { useAppSelector } from '../profile/store';
+>>>>>>> profile
 
 const C = {
   primary: '#F5C518',
@@ -66,6 +70,24 @@ const CATEGORIES = [
   },
 ];
 
+// ── helpers ───────────────────────────────────────────────────────────────────
+function getFirstName(fullName: string): string {
+  return fullName.trim().split(' ')[0] ?? 'there';
+}
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(' ').filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return parts[0]?.[0]?.toUpperCase() ?? '?';
+}
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
 interface Props {
   search: string;
   onSearchChange: (v: string) => void;
@@ -87,6 +109,11 @@ export default function HeroHeader({
 }: Props) {
   const [showAllCats, setShowAllCats] = useState(false);
   const VISIBLE_CATS = showAllCats ? CATEGORIES : CATEGORIES.slice(0, 6);
+
+  // ── read live profile from Redux ──────────────────────────────────────────
+  const profile = useAppSelector((state: any) => state.profile);
+  const firstName = getFirstName(profile.name ?? 'there');
+  const greeting = getGreeting();
 
   const handleSeeAll = () => {
     setShowAllCats(v => !v);
@@ -115,9 +142,14 @@ export default function HeroHeader({
                 <Text style={S.deliveringTo}>Delivering to</Text>
                 <Text style={{ color: C.primary, fontSize: 10 }}>▾</Text>
               </View>
-              <Text style={S.locationText}>Mayfair, London</Text>
+              <Text style={S.locationText}>
+                {profile.city && profile.state
+                  ? `${profile.city}, ${profile.state}`
+                  : profile.city || profile.state || 'Mayfair, London'}
+              </Text>
             </View>
           </View>
+
           <View style={S.row}>
             <TouchableOpacity style={S.cartBtn}>
               <Text style={{ fontSize: 17 }}>🛒</Text>
@@ -127,18 +159,25 @@ export default function HeroHeader({
                 </View>
               )}
             </TouchableOpacity>
-            <Image
-              source={{
-                uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80',
-              }}
-              style={S.avatarImg}
-            />
+
+            {/* Avatar: real photo OR initials fallback */}
+            {profile.avatar ? (
+              <Image source={{ uri: profile.avatar }} style={S.avatarImg} />
+            ) : (
+              <View style={S.avatarFallback}>
+                <Text style={S.avatarInitials}>
+                  {getInitials(profile.name ?? 'U')}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
         {/* ── GREETING ── */}
         <View style={S.headerContent}>
-          <Text style={S.greeting}>Good afternoon, Oliver 👋</Text>
+          <Text style={S.greeting}>
+            {greeting}, {firstName} 👋
+          </Text>
           <Text style={S.heroTitle}>
             Hungry? Discover{'\n'}
             <Text style={{ color: C.primary }}>2,400+ dishes</Text> near you.
@@ -233,7 +272,6 @@ export default function HeroHeader({
 const S = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
 
-  // Background layers
   headerBg: { position: 'relative', overflow: 'hidden' },
   bgBase: {
     position: 'absolute',
@@ -331,12 +369,30 @@ const S = StyleSheet.create({
     borderColor: C.white,
   },
   cartBadgeText: { color: C.white, fontSize: 9, fontWeight: '900' },
+
+  // Avatar — real photo
   avatarImg: {
     width: 40,
     height: 40,
     borderRadius: 20,
     borderWidth: 2,
     borderColor: C.primary,
+  },
+  // Avatar — initials fallback
+  avatarFallback: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(245,197,24,0.25)',
+    borderWidth: 2,
+    borderColor: C.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitials: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: C.primary,
   },
 
   // Greeting

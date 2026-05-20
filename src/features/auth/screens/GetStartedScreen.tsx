@@ -61,7 +61,8 @@ const GetStartedScreen: React.FC = () => {
     ]).start();
   }, []);
 
-  const handleGetStarted = () => navigation.navigate('Login');
+  // const handleGetStarted = () => navigation.navigate('Login');
+  const handleGetStarted = () => navigation.navigate('Home');
 
   return (
     <ImageBackground
