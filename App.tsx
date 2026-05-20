@@ -13,12 +13,8 @@ import LoginScreen from './src/features/auth/screens/LoginScreen';
 import SignupScreen from './src/features/auth/screens/SignupScreen';
 import ForgotPasswordScreen from './src/features/auth/screens/ForgotPasswordScreen';
 import HomeScreen from './src/features/home/screens/HomeScreen';
-<<<<<<< HEAD
-import HotelFoodMenuScreen from './src/features/HotelFoodMenu/screens/HotelFoodMenuScreen';
-=======
 import ProfileScreen from './src/features/home/profile/screens/ProfileScreen';
 import EditProfileScreen from './src/features/home/profile/screens/EditProfileScreen';
->>>>>>> profile
 
 const Stack = createNativeStackNavigator();
 
@@ -84,24 +80,12 @@ function App() {
     );
   }
 
-<<<<<<< HEAD
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{ headerShown: false }}
-        />
-
-        <Stack.Screen name="HotelFoodMenu" component={HotelFoodMenuScreen} options={{headerShown: false}} />
-      </Stack.Navigator>
-    </NavigationContainer>
-=======
   return (
     <Provider store={store}>
       <NavigationContainer>
         <AppNavigator />
       </NavigationContainer>
     </Provider>
->>>>>>> profile
   );
 }
 
