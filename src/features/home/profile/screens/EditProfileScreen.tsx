@@ -19,6 +19,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAppDispatch, useAppSelector } from '../store';
 import { updateProfile } from '../state/ProfileSlice';
+import { saveAvatarUri } from '../storage';
 import {
   launchImageLibrary,
   launchCamera,
@@ -43,14 +44,14 @@ const COLORS = {
   dividerLine: '#CBD5E1',
 };
 
-// ─── Icon map (outside component — never re-created) ──────────────────────────
+// ─── Icon map ─────────────────────────────────────────────────────────────────
 const ICON_MAP: Record<string, string> = {
   user: 'person-outline',
   email: 'mail-outline',
   phone: 'call-outline',
 };
 
-// ─── InputField (declared at module level — NOT inside another component) ─────
+// ─── InputField ───────────────────────────────────────────────────────────────
 interface InputFieldProps {
   label: string;
   placeholder: string;
@@ -103,7 +104,7 @@ const InputField = React.memo(function InputField({
   );
 });
 
-// ─── SectionDivider (module level) ───────────────────────────────────────────
+// ─── SectionDivider ───────────────────────────────────────────────────────────
 const SectionDivider = React.memo(function SectionDivider({
   label,
 }: {
@@ -118,7 +119,7 @@ const SectionDivider = React.memo(function SectionDivider({
   );
 });
 
-// ─── Helper: get initials (pure function, outside component) ──────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function getInitials(name: string): string {
   const parts = name.trim().split(' ').filter(Boolean);
   if (parts.length >= 2) {
@@ -127,7 +128,6 @@ function getInitials(name: string): string {
   return parts[0]?.[0]?.toUpperCase() ?? '?';
 }
 
-// ─── Camera Permission Helper ─────────────────────────────────────────────────
 async function requestCameraPermission(): Promise<boolean> {
   if (Platform.OS === 'android') {
     try {
@@ -145,18 +145,15 @@ async function requestCameraPermission(): Promise<boolean> {
       return false;
     }
   }
-  // iOS — react-native-image-picker handles permission automatically
   return true;
 }
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 function EditProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-
   const dispatch = useAppDispatch();
   const profile = useAppSelector((state: any) => state.profile);
 
-  // ── State (all hooks at top level, unconditionally) ───────────────────────
   const [fullName, setFullName] = useState<string>(profile.name ?? '');
   const [email, setEmail] = useState<string>(profile.email ?? '');
   const [phone, setPhone] = useState<string>(profile.phone ?? '');
@@ -169,7 +166,6 @@ function EditProfileScreen() {
 
   const saveAnim = useRef(new Animated.Value(0)).current;
 
-  // ── Detect changes ────────────────────────────────────────────────────────
   const hasChanges =
     fullName !== (profile.name ?? '') ||
     email !== (profile.email ?? '') ||
@@ -178,7 +174,6 @@ function EditProfileScreen() {
     city !== (profile.city ?? '') ||
     avatar !== (profile.avatar ?? null);
 
-  // ── Animate save button ───────────────────────────────────────────────────
   useEffect(() => {
     Animated.spring(saveAnim, {
       toValue: hasChanges ? 1 : 0,
@@ -188,7 +183,7 @@ function EditProfileScreen() {
     }).start();
   }, [hasChanges]);
 
-  // ── Photo picker ──────────────────────────────────────────────────────────
+  // ── Photo picker ─────────────────────────────────────────────────────────
   const handlePhotoPress = () => {
     const buttons: any[] = [
       { text: 'Take Photo', onPress: openCamera },
@@ -211,13 +206,9 @@ function EditProfileScreen() {
       { mediaType: 'photo' as MediaType, quality: 0.8, selectionLimit: 1 },
       (response: ImagePickerResponse) => {
         setUploadingPhoto(false);
-        if (response.didCancel || response.errorCode) {
-          return;
-        }
+        if (response.didCancel || response.errorCode) return;
         const uri = response.assets?.[0]?.uri;
-        if (uri) {
-          setAvatar(uri);
-        }
+        if (uri) setAvatar(uri);
       },
     );
   };
@@ -237,13 +228,9 @@ function EditProfileScreen() {
       { mediaType: 'photo' as MediaType, quality: 0.8, saveToPhotos: false },
       (response: ImagePickerResponse) => {
         setUploadingPhoto(false);
-        if (response.didCancel || response.errorCode) {
-          return;
-        }
+        if (response.didCancel || response.errorCode) return;
         const uri = response.assets?.[0]?.uri;
-        if (uri) {
-          setAvatar(uri);
-        }
+        if (uri) setAvatar(uri);
       },
     );
   };
@@ -254,6 +241,10 @@ function EditProfileScreen() {
       Alert.alert('Validation', 'Full name cannot be empty.');
       return;
     }
+
+    // Persist avatar URI to AsyncStorage so it survives app restarts
+    saveAvatarUri(avatar);
+
     dispatch(
       updateProfile({
         name: fullName.trim(),
@@ -270,7 +261,6 @@ function EditProfileScreen() {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={profile_safe}>
-      {/* Header — Save button removed */}
       <View style={profile_header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -278,10 +268,7 @@ function EditProfileScreen() {
         >
           <Icon name="chevron-back" size={22} color={COLORS.ink} />
         </TouchableOpacity>
-
         <Text style={profile_headerTitle}>Edit Profile</Text>
-
-        {/* Spacer to keep title centered */}
         <View style={{ width: 36 }} />
       </View>
 
@@ -320,7 +307,6 @@ function EditProfileScreen() {
 
           <Text style={profile_avatarHintText}>Tap photo to change</Text>
 
-          {/* Quick pill buttons */}
           <View style={profile_photoPills}>
             <TouchableOpacity
               style={profile_photoPill}
@@ -335,7 +321,6 @@ function EditProfileScreen() {
               <Text style={profile_photoPillText}>Gallery</Text>
             </TouchableOpacity>
 
-            {/* Camera pill — requests permission then opens camera directly */}
             <TouchableOpacity
               style={profile_photoPill}
               onPress={openCamera}
@@ -364,6 +349,7 @@ function EditProfileScreen() {
           </View>
         </View>
 
+        {/* Form Card */}
         <View style={profile_formCard}>
           <InputField
             label="Full Name"
@@ -393,7 +379,6 @@ function EditProfileScreen() {
           <SectionDivider label="Location" />
 
           <View style={profile_rowFields}>
-            {/* State */}
             <View style={profile_halfField}>
               <Text style={profile_inputLabel}>State</Text>
               <View style={profile_inputContainerHalf}>
@@ -413,7 +398,6 @@ function EditProfileScreen() {
               </View>
             </View>
 
-            {/* City */}
             <View style={profile_halfField}>
               <Text style={profile_inputLabel}>City</Text>
               <View style={profile_inputContainerHalf}>
@@ -475,11 +459,8 @@ function EditProfileScreen() {
   );
 }
 
-// ─── Styles (all prefixed profile_) ──────────────────────────────────────────
-const profile_safe: any = {
-  flex: 1,
-  backgroundColor: COLORS.surface,
-};
+// ─── Styles ───────────────────────────────────────────────────────────────────
+const profile_safe: any = { flex: 1, backgroundColor: COLORS.surface };
 
 const profile_header: any = {
   flexDirection: 'row',
@@ -508,24 +489,8 @@ const profile_headerTitle: any = {
   letterSpacing: -0.3,
 };
 
-const profile_saveHeaderBtn: any = {
-  paddingHorizontal: 16,
-  paddingVertical: 7,
-  backgroundColor: COLORS.primary,
-  borderRadius: 10,
-};
+const profile_scroll: any = { paddingBottom: 16 };
 
-const profile_saveHeaderBtnText: any = {
-  fontSize: 13,
-  fontWeight: '800',
-  color: COLORS.ink,
-};
-
-const profile_scroll: any = {
-  paddingBottom: 16,
-};
-
-// Avatar
 const profile_avatarSection: any = {
   alignItems: 'center',
   paddingTop: 28,
@@ -626,7 +591,6 @@ const profile_photoPillText: any = {
   color: COLORS.primaryDark,
 };
 
-// Form
 const profile_formCard: any = {
   marginHorizontal: 16,
   backgroundColor: COLORS.white,
@@ -637,9 +601,7 @@ const profile_formCard: any = {
   gap: 16,
 };
 
-const profile_inputGroup: any = {
-  gap: 6,
-};
+const profile_inputGroup: any = { gap: 6 };
 
 const profile_inputLabel: any = {
   fontSize: 12,
@@ -683,15 +645,8 @@ const profile_input: any = {
   color: COLORS.ink,
 };
 
-const profile_rowFields: any = {
-  flexDirection: 'row',
-  gap: 12,
-};
-
-const profile_halfField: any = {
-  flex: 1,
-  gap: 6,
-};
+const profile_rowFields: any = { flexDirection: 'row', gap: 12 };
+const profile_halfField: any = { flex: 1, gap: 6 };
 
 const profile_dividerRow: any = {
   flexDirection: 'row',
@@ -740,468 +695,3 @@ const profile_saveBtnText: any = {
 };
 
 export default EditProfileScreen;
-
-// import React, { useState, useEffect, useRef } from 'react';
-// import {
-//   View,
-//   Text,
-//   ScrollView,
-//   TouchableOpacity,
-//   SafeAreaView,
-//   TextInput,
-//   Animated,
-//   Alert,
-// } from 'react-native';
-// import Icon from 'react-native-vector-icons/Ionicons';
-// import { MapPinIcon } from 'lucide-react-native';
-// import { useNavigation } from '@react-navigation/native';
-// import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
-// import { useAppDispatch, useAppSelector } from '../store';
-// import { updateProfile } from '../state/ProfileSlice';
-// import CameraPickerSection from '../Camerapickersection';
-
-// // ─── Design Tokens ────────────────────────────────────────────────────────────
-// const COLORS = {
-//   primary: '#fac60b',
-//   primaryDark: '#c49900',
-//   ink: '#11072b',
-//   navy: '#170b35',
-//   muted: '#94A3B8',
-//   white: '#FFFFFF',
-//   border: '#EDF0F4',
-//   surface: '#F8F9FB',
-//   red: '#EF4444',
-//   redLight: '#FEE2E2',
-//   inputBg: '#F1F5F9',
-//   labelColor: '#64748B',
-//   dividerLine: '#CBD5E1',
-// };
-
-// // ─── Icon map (outside component — never re-created) ──────────────────────────
-// const ICON_MAP: Record<string, string> = {
-//   user: 'person-outline',
-//   email: 'mail-outline',
-//   phone: 'call-outline',
-// };
-
-// // ─── InputField (declared at module level — NOT inside another component) ─────
-// interface InputFieldProps {
-//   label: string;
-//   placeholder: string;
-//   icon: string;
-//   value: string;
-//   onChangeText: (v: string) => void;
-//   keyboardType?: any;
-//   autoCapitalize?: any;
-// }
-
-// const InputField = React.memo(function InputField({
-//   label,
-//   placeholder,
-//   icon,
-//   value,
-//   onChangeText,
-//   keyboardType = 'default',
-//   autoCapitalize = 'sentences',
-// }: InputFieldProps) {
-//   const [focused, setFocused] = useState(false);
-
-//   return (
-//     <View style={profile_inputGroup}>
-//       <Text style={profile_inputLabel}>{label}</Text>
-//       <View
-//         style={[
-//           profile_inputContainer,
-//           focused ? profile_inputContainerFocused : null,
-//         ]}
-//       >
-//         <Icon
-//           name={ICON_MAP[icon] ?? icon}
-//           size={16}
-//           color={focused ? COLORS.primary : COLORS.muted}
-//           style={{ marginRight: 10 }}
-//         />
-//         <TextInput
-//           style={profile_input}
-//           placeholder={placeholder}
-//           placeholderTextColor={COLORS.muted}
-//           value={value}
-//           onChangeText={onChangeText}
-//           keyboardType={keyboardType}
-//           autoCapitalize={autoCapitalize}
-//           onFocus={() => setFocused(true)}
-//           onBlur={() => setFocused(false)}
-//         />
-//       </View>
-//     </View>
-//   );
-// });
-
-// // ─── SectionDivider (module level) ───────────────────────────────────────────
-// const SectionDivider = React.memo(function SectionDivider({
-//   label,
-// }: {
-//   label: string;
-// }) {
-//   return (
-//     <View style={profile_dividerRow}>
-//       <View style={profile_dividerLine} />
-//       <Text style={profile_dividerLabel}>{label}</Text>
-//       <View style={profile_dividerLine} />
-//     </View>
-//   );
-// });
-
-// // ─── Main Screen ──────────────────────────────────────────────────────────────
-// function EditProfileScreen() {
-//   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-//   const dispatch = useAppDispatch();
-//   const profile = useAppSelector((state: any) => state.profile);
-
-//   // ── State (all hooks at top level, unconditionally) ───────────────────────
-//   const [fullName, setFullName] = useState<string>(profile.name ?? '');
-//   const [email, setEmail] = useState<string>(profile.email ?? '');
-//   const [phone, setPhone] = useState<string>(profile.phone ?? '');
-//   const [locationState, setLocationState] = useState<string>(
-//     profile.state ?? '',
-//   );
-//   const [city, setCity] = useState<string>(profile.city ?? '');
-//   const [avatar, setAvatar] = useState<string | null>(profile.avatar ?? null);
-//   const [uploadingPhoto, setUploadingPhoto] = useState<boolean>(false);
-
-//   const saveAnim = useRef(new Animated.Value(0)).current;
-
-//   // ── Detect changes ────────────────────────────────────────────────────────
-//   const hasChanges =
-//     fullName !== (profile.name ?? '') ||
-//     email !== (profile.email ?? '') ||
-//     phone !== (profile.phone ?? '') ||
-//     locationState !== (profile.state ?? '') ||
-//     city !== (profile.city ?? '') ||
-//     avatar !== (profile.avatar ?? null);
-
-//   // ── Animate save button ───────────────────────────────────────────────────
-//   useEffect(() => {
-//     Animated.spring(saveAnim, {
-//       toValue: hasChanges ? 1 : 0,
-//       useNativeDriver: true,
-//       tension: 160,
-//       friction: 12,
-//     }).start();
-//   }, [hasChanges]);
-
-//   // ── Save ──────────────────────────────────────────────────────────────────
-//   const handleSave = () => {
-//     if (!fullName.trim()) {
-//       Alert.alert('Validation', 'Full name cannot be empty.');
-//       return;
-//     }
-//     dispatch(
-//       updateProfile({
-//         name: fullName.trim(),
-//         email: email.trim(),
-//         phone: phone.trim(),
-//         state: locationState.trim(),
-//         city: city.trim(),
-//         avatar,
-//       }),
-//     );
-//     navigation.goBack();
-//   };
-
-//   // ── Render ────────────────────────────────────────────────────────────────
-//   return (
-//     <SafeAreaView style={profile_safe}>
-//       {/* Header — Save button removed */}
-//       <View style={profile_header}>
-//         <TouchableOpacity
-//           onPress={() => navigation.goBack()}
-//           style={profile_backBtn}
-//         >
-//           <Icon name="chevron-back" size={22} color={COLORS.ink} />
-//         </TouchableOpacity>
-
-//         <Text style={profile_headerTitle}>Edit Profile</Text>
-
-//         {/* Spacer to keep title centered */}
-//         <View style={{ width: 36 }} />
-//       </View>
-
-//       <ScrollView
-//         contentContainerStyle={profile_scroll}
-//         showsVerticalScrollIndicator={false}
-//         keyboardShouldPersistTaps="handled"
-//       >
-//         {/* Avatar + Camera Section — separate component */}
-//         <CameraPickerSection
-//           avatar={avatar}
-//           setAvatar={setAvatar}
-//           uploadingPhoto={uploadingPhoto}
-//           setUploadingPhoto={setUploadingPhoto}
-//           fullName={fullName}
-//         />
-
-//         {/* Form Card */}
-//         <View style={profile_formCard}>
-//           <InputField
-//             label="Full Name"
-//             placeholder="Your full name"
-//             icon="user"
-//             value={fullName}
-//             onChangeText={setFullName}
-//           />
-//           <InputField
-//             label="Email Address"
-//             placeholder="you@example.com"
-//             icon="email"
-//             keyboardType="email-address"
-//             value={email}
-//             onChangeText={setEmail}
-//             autoCapitalize="none"
-//           />
-//           <InputField
-//             label="Phone Number"
-//             placeholder="Phone number"
-//             icon="phone"
-//             keyboardType="phone-pad"
-//             value={phone}
-//             onChangeText={setPhone}
-//           />
-
-//           <SectionDivider label="Location" />
-
-//           <View style={profile_rowFields}>
-//             {/* State */}
-//             <View style={profile_halfField}>
-//               <Text style={profile_inputLabel}>State</Text>
-//               <View style={profile_inputContainerHalf}>
-//                 <MapPinIcon
-//                   size={16}
-//                   color={COLORS.muted}
-//                   style={{ marginRight: 8 }}
-//                 />
-//                 <TextInput
-//                   style={profile_input}
-//                   placeholder="State"
-//                   placeholderTextColor={COLORS.muted}
-//                   value={locationState}
-//                   onChangeText={setLocationState}
-//                   autoCapitalize="words"
-//                 />
-//               </View>
-//             </View>
-
-//             {/* City */}
-//             <View style={profile_halfField}>
-//               <Text style={profile_inputLabel}>City</Text>
-//               <View style={profile_inputContainerHalf}>
-//                 <MapPinIcon
-//                   size={16}
-//                   color={COLORS.muted}
-//                   style={{ marginRight: 8 }}
-//                 />
-//                 <TextInput
-//                   style={profile_input}
-//                   placeholder="City"
-//                   placeholderTextColor={COLORS.muted}
-//                   value={city}
-//                   onChangeText={setCity}
-//                   autoCapitalize="words"
-//                 />
-//               </View>
-//             </View>
-//           </View>
-//         </View>
-
-//         {/* Bottom Save Button */}
-//         {hasChanges && (
-//           <Animated.View
-//             style={[
-//               profile_bottomBtnWrap,
-//               {
-//                 opacity: saveAnim,
-//                 transform: [
-//                   {
-//                     translateY: saveAnim.interpolate({
-//                       inputRange: [0, 1],
-//                       outputRange: [20, 0],
-//                     }),
-//                   },
-//                 ],
-//               },
-//             ]}
-//           >
-//             <TouchableOpacity
-//               style={profile_saveBtn}
-//               activeOpacity={0.85}
-//               onPress={handleSave}
-//             >
-//               <Icon
-//                 name="checkmark-circle-outline"
-//                 size={18}
-//                 color={COLORS.ink}
-//                 style={{ marginRight: 8 }}
-//               />
-//               <Text style={profile_saveBtnText}>Save Changes</Text>
-//             </TouchableOpacity>
-//           </Animated.View>
-//         )}
-
-//         <View style={{ height: 40 }} />
-//       </ScrollView>
-//     </SafeAreaView>
-//   );
-// }
-
-// // ─── Styles (all prefixed profile_) ──────────────────────────────────────────
-// const profile_safe: any = {
-//   flex: 1,
-//   backgroundColor: COLORS.surface,
-// };
-
-// const profile_header: any = {
-//   flexDirection: 'row',
-//   alignItems: 'center',
-//   justifyContent: 'space-between',
-//   paddingHorizontal: 16,
-//   paddingVertical: 14,
-//   backgroundColor: COLORS.white,
-//   borderBottomWidth: 1,
-//   borderBottomColor: COLORS.border,
-// };
-
-// const profile_backBtn: any = {
-//   width: 36,
-//   height: 36,
-//   borderRadius: 10,
-//   backgroundColor: COLORS.surface,
-//   alignItems: 'center',
-//   justifyContent: 'center',
-// };
-
-// const profile_headerTitle: any = {
-//   fontSize: 17,
-//   fontWeight: '800',
-//   color: COLORS.ink,
-//   letterSpacing: -0.3,
-// };
-
-// const profile_scroll: any = {
-//   paddingBottom: 16,
-// };
-
-// // Form
-// const profile_formCard: any = {
-//   marginHorizontal: 16,
-//   backgroundColor: COLORS.white,
-//   borderRadius: 20,
-//   borderWidth: 1,
-//   borderColor: COLORS.border,
-//   padding: 20,
-//   gap: 16,
-// };
-
-// const profile_inputGroup: any = {
-//   gap: 6,
-// };
-
-// const profile_inputLabel: any = {
-//   fontSize: 12,
-//   fontWeight: '700',
-//   color: COLORS.labelColor,
-//   letterSpacing: 0.3,
-// };
-
-// const profile_inputContainer: any = {
-//   flexDirection: 'row',
-//   alignItems: 'center',
-//   backgroundColor: COLORS.inputBg,
-//   borderRadius: 12,
-//   paddingHorizontal: 14,
-//   paddingVertical: 11,
-//   borderWidth: 1.5,
-//   borderColor: 'transparent',
-// };
-
-// const profile_inputContainerFocused: any = {
-//   borderColor: COLORS.primary,
-//   backgroundColor: COLORS.white,
-// };
-
-// const profile_inputContainerHalf: any = {
-//   flex: 1,
-//   flexDirection: 'row',
-//   alignItems: 'center',
-//   backgroundColor: COLORS.inputBg,
-//   borderRadius: 12,
-//   paddingHorizontal: 12,
-//   paddingVertical: 11,
-//   borderWidth: 1.5,
-//   borderColor: 'transparent',
-// };
-
-// const profile_input: any = {
-//   flex: 1,
-//   fontSize: 14,
-//   fontWeight: '600',
-//   color: COLORS.ink,
-// };
-
-// const profile_rowFields: any = {
-//   flexDirection: 'row',
-//   gap: 12,
-// };
-
-// const profile_halfField: any = {
-//   flex: 1,
-//   gap: 6,
-// };
-
-// const profile_dividerRow: any = {
-//   flexDirection: 'row',
-//   alignItems: 'center',
-//   gap: 10,
-//   marginVertical: 4,
-// };
-
-// const profile_dividerLine: any = {
-//   flex: 1,
-//   height: 1,
-//   backgroundColor: COLORS.border,
-// };
-
-// const profile_dividerLabel: any = {
-//   fontSize: 10,
-//   fontWeight: '800',
-//   color: COLORS.muted,
-//   letterSpacing: 1.2,
-// };
-
-// const profile_bottomBtnWrap: any = {
-//   marginHorizontal: 16,
-//   marginTop: 20,
-// };
-
-// const profile_saveBtn: any = {
-//   flexDirection: 'row',
-//   alignItems: 'center',
-//   justifyContent: 'center',
-//   backgroundColor: COLORS.primary,
-//   borderRadius: 14,
-//   paddingVertical: 15,
-//   shadowColor: COLORS.primary,
-//   shadowOffset: { width: 0, height: 6 },
-//   shadowOpacity: 0.35,
-//   shadowRadius: 12,
-//   elevation: 6,
-// };
-
-// const profile_saveBtnText: any = {
-//   fontSize: 15,
-//   fontWeight: '800',
-//   color: COLORS.ink,
-//   letterSpacing: -0.2,
-// };
-
-// export default EditProfileScreen;

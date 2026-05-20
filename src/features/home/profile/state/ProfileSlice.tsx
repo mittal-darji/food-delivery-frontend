@@ -47,5 +47,4 @@ const profileSlice = createSlice({
 });
 
 export const { updateProfile, resetProfile } = profileSlice.actions;
-
 export default profileSlice.reducer;

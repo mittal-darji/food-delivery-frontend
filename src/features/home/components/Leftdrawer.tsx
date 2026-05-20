@@ -8,9 +8,13 @@
 //   Animated,
 //   Dimensions,
 //   StyleSheet,
+//   Image,
 // } from 'react-native';
 // import Icon from 'react-native-vector-icons/Ionicons';
 // import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+// import { useNavigation } from '@react-navigation/native';
+// import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+// import { useAppSelector } from '../profile/store';
 
 // const { width: SCREEN_WIDTH } = Dimensions.get('window');
 // const SIDEBAR_WIDTH = Math.min(SCREEN_WIDTH * 0.72, 280);
@@ -34,45 +38,61 @@
 //     icon: 'person',
 //     label: 'Profile',
 //     color: '#f9c60b',
+//     route: 'Profile',
 //   },
 //   {
 //     iconLib: 'ionicon',
 //     icon: 'heart',
 //     label: 'Collection',
 //     color: '#EC4899',
+//     route: 'Collection',
 //   },
 //   {
 //     iconLib: 'ionicon',
 //     icon: 'cart',
 //     label: 'Cart',
 //     color: '#8B5CF6',
+//     route: 'Cart',
 //   },
 //   {
 //     iconLib: 'ionicon',
 //     icon: 'receipt',
 //     label: 'Orders',
 //     color: '#3B82F6',
+//     route: 'Orders',
 //   },
 //   {
 //     iconLib: 'material',
 //     icon: 'message-reply-text',
 //     label: 'Feedback',
 //     color: '#10B981',
+//     route: 'Feedback',
 //   },
 //   {
 //     iconLib: 'ionicon',
 //     icon: 'call',
 //     label: 'Contact Us',
 //     color: '#F5C518',
+//     route: 'ContactUs',
 //   },
 // ];
+
+// function getInitials(name: string): string {
+//   const parts = name.trim().split(' ').filter(Boolean);
+//   if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+//   return parts[0]?.[0]?.toUpperCase() ?? '?';
+// }
 
 // interface Props {
 //   visible: boolean;
 //   onClose: () => void;
+//   onLogout?: () => void;
 // }
 
-// export default function LeftDrawer({ visible, onClose }: Props) {
+// export default function LeftDrawer({ visible, onClose, onLogout }: Props) {
+//   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+//   const profile = useAppSelector((state: any) => state.profile);
+
 //   const slideAnim = useRef(new Animated.Value(-SIDEBAR_WIDTH)).current;
 
 //   useEffect(() => {
@@ -92,6 +112,20 @@
 //     }
 //   }, [visible]);
 
+//   const handleNavigate = (route: string) => {
+//     onClose();
+//     navigation.navigate(route);
+//   };
+
+//   const handleLogout = () => {
+//     onClose();
+//     if (onLogout) {
+//       onLogout();
+//     } else {
+//       navigation.navigate('Login');
+//     }
+//   };
+
 //   return (
 //     <Modal
 //       transparent
@@ -99,60 +133,81 @@
 //       animationType="none"
 //       onRequestClose={onClose}
 //     >
-//       <View style={leftDrawerStyles.overlay}>
+//       <View style={styles.overlay}>
 //         <TouchableWithoutFeedback onPress={onClose}>
-//           <View style={leftDrawerStyles.backdrop} />
+//           <View style={styles.backdrop} />
 //         </TouchableWithoutFeedback>
 
 //         <Animated.View
-//           style={[
-//             leftDrawerStyles.panel,
-//             { transform: [{ translateX: slideAnim }] },
-//           ]}
+//           style={[styles.panel, { transform: [{ translateX: slideAnim }] }]}
 //         >
 //           {/* Header */}
-//           <View style={leftDrawerStyles.header}>
+//           <View style={styles.header}>
 //             {/* Brand row */}
-//             <View style={leftDrawerStyles.brandRow}>
-//               <View style={leftDrawerStyles.brandIconWrap}>
+//             <TouchableOpacity
+//               style={styles.brandRow}
+//               activeOpacity={0.7}
+//               onPress={() => handleNavigate('Home')}
+//             >
+//               <View style={styles.brandIconWrap}>
 //                 <Icon name="fast-food" size={22} color={COLORS.navy} />
 //               </View>
 //               <View>
-//                 <Text style={leftDrawerStyles.brandName}>ForkDash</Text>
-//                 <Text style={leftDrawerStyles.brandSub}>
-//                   Delivered with love 💛
+//                 <Text style={styles.brandName}>ForkDash</Text>
+//                 <Text style={styles.brandSub}>Delivered with love 💛</Text>
+//               </View>
+//             </TouchableOpacity>
+
+//             {/* User card — live from Redux */}
+//             <TouchableOpacity
+//               style={styles.userCard}
+//               activeOpacity={0.7}
+//               onPress={() => handleNavigate('Profile')}
+//             >
+//               {/* Avatar: real photo OR initials fallback */}
+//               {profile.avatar ? (
+//                 <Image
+//                   source={{ uri: profile.avatar }}
+//                   style={styles.avatarImage}
+//                 />
+//               ) : (
+//                 <View style={styles.avatarCircle}>
+//                   <Text style={styles.avatarInitials}>
+//                     {getInitials(profile.name ?? 'U')}
+//                   </Text>
+//                 </View>
+//               )}
+
+//               <View style={styles.userInfo}>
+//                 <Text style={styles.userName} numberOfLines={1}>
+//                   {profile.name}
+//                 </Text>
+//                 <Text style={styles.userEmail} numberOfLines={1}>
+//                   {profile.email}
 //                 </Text>
 //               </View>
-//             </View>
 
-//             {/* User card */}
-//             <View style={leftDrawerStyles.userCard}>
-//               <View style={leftDrawerStyles.avatarCircle}>
-//                 <Icon name="person" size={22} color={COLORS.primaryDark} />
-//               </View>
-//               <View style={leftDrawerStyles.userInfo}>
-//                 <Text style={leftDrawerStyles.userName}>Oliver Smith</Text>
-//                 <Text style={leftDrawerStyles.userEmail}>oliver@email.com</Text>
-//               </View>
-//               <View style={leftDrawerStyles.proBadge}>
-//                 <Text style={leftDrawerStyles.proBadgeText}>PRO</Text>
-//               </View>
-//             </View>
+//               {profile.isPro && (
+//                 <View style={styles.proBadge}>
+//                   <Text style={styles.proBadgeText}>PRO</Text>
+//                 </View>
+//               )}
+//             </TouchableOpacity>
 //           </View>
 
 //           {/* Menu */}
-//           <View style={leftDrawerStyles.menuSection}>
-//             <Text style={leftDrawerStyles.sectionLabel}>MENU</Text>
+//           <View style={styles.menuSection}>
+//             <Text style={styles.sectionLabel}>MENU</Text>
 //             {MENU_ITEMS.map(item => (
 //               <TouchableOpacity
 //                 key={item.label}
-//                 style={leftDrawerStyles.menuItem}
+//                 style={styles.menuItem}
 //                 activeOpacity={0.7}
-//                 onPress={onClose}
+//                 onPress={() => handleNavigate(item.route)}
 //               >
 //                 <View
 //                   style={[
-//                     leftDrawerStyles.itemIconWrap,
+//                     styles.itemIconWrap,
 //                     { backgroundColor: item.color + '18' },
 //                   ]}
 //                 >
@@ -166,20 +221,17 @@
 //                     />
 //                   )}
 //                 </View>
-//                 <Text style={leftDrawerStyles.itemLabel}>{item.label}</Text>
+//                 <Text style={styles.itemLabel}>{item.label}</Text>
 //                 <Icon name="chevron-forward" size={16} color="#CBD5E1" />
 //               </TouchableOpacity>
 //             ))}
 //           </View>
 
 //           {/* Footer */}
-//           <View style={leftDrawerStyles.footer}>
-//             <TouchableOpacity
-//               style={leftDrawerStyles.logoutBtn}
-//               onPress={onClose}
-//             >
+//           <View style={styles.footer}>
+//             <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
 //               <Icon name="log-out-outline" size={18} color={COLORS.red} />
-//               <Text style={leftDrawerStyles.logoutText}>Log Out</Text>
+//               <Text style={styles.logoutText}>Log Out</Text>
 //             </TouchableOpacity>
 //           </View>
 //         </Animated.View>
@@ -188,15 +240,9 @@
 //   );
 // }
 
-// const leftDrawerStyles = StyleSheet.create({
-//   overlay: {
-//     flex: 1,
-//     flexDirection: 'row',
-//   },
-//   backdrop: {
-//     flex: 1,
-//     backgroundColor: 'rgba(0,0,0,0.4)',
-//   },
+// const styles = StyleSheet.create({
+//   overlay: { flex: 1, flexDirection: 'row' },
+//   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
 //   panel: {
 //     position: 'absolute',
 //     left: 0,
@@ -243,7 +289,7 @@
 //     fontWeight: '600',
 //   },
 
-//   // User card — warm gold tint matching app primary
+//   // User card
 //   userCard: {
 //     flexDirection: 'row',
 //     alignItems: 'center',
@@ -253,6 +299,13 @@
 //     borderWidth: 1,
 //     borderColor: 'rgba(185, 169, 110, 0.18)',
 //   },
+//   avatarImage: {
+//     width: 44,
+//     height: 44,
+//     borderRadius: 22,
+//     borderWidth: 2,
+//     borderColor: COLORS.primary,
+//   },
 //   avatarCircle: {
 //     width: 44,
 //     height: 44,
@@ -260,6 +313,13 @@
 //     backgroundColor: 'rgba(245,197,24,0.18)',
 //     alignItems: 'center',
 //     justifyContent: 'center',
+//     borderWidth: 2,
+//     borderColor: COLORS.primary + '55',
+//   },
+//   avatarInitials: {
+//     fontSize: 16,
+//     fontWeight: '800',
+//     color: COLORS.primaryDark,
 //   },
 //   userInfo: {
 //     marginLeft: 12,
@@ -357,11 +417,13 @@ import {
   Animated,
   Dimensions,
   StyleSheet,
+  Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useAppSelector } from '../profile/store'; // adjust path if needed
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SIDEBAR_WIDTH = Math.min(SCREEN_WIDTH * 0.72, 280);
@@ -424,6 +486,12 @@ const MENU_ITEMS = [
   },
 ];
 
+function getInitials(name: string): string {
+  const parts = name.trim().split(' ').filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return parts[0]?.[0]?.toUpperCase() ?? '?';
+}
+
 interface Props {
   visible: boolean;
   onClose: () => void;
@@ -432,6 +500,7 @@ interface Props {
 
 export default function LeftDrawer({ visible, onClose, onLogout }: Props) {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const profile = useAppSelector((state: any) => state.profile);
 
   const slideAnim = useRef(new Animated.Value(-SIDEBAR_WIDTH)).current;
 
@@ -466,6 +535,46 @@ export default function LeftDrawer({ visible, onClose, onLogout }: Props) {
     }
   };
 
+  // ── Reusable avatar: used in both user card and Profile menu row ──────────
+  const AvatarSmall = ({ size }: { size: number }) => {
+    const radius = size / 2;
+    return profile.avatar ? (
+      <Image
+        source={{ uri: profile.avatar }}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: radius,
+          borderWidth: 2,
+          borderColor: COLORS.primary,
+        }}
+      />
+    ) : (
+      <View
+        style={{
+          width: size,
+          height: size,
+          borderRadius: radius,
+          backgroundColor: 'rgba(245,197,24,0.18)',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderWidth: 2,
+          borderColor: COLORS.primary + '55',
+        }}
+      >
+        <Text
+          style={{
+            fontSize: size * 0.35,
+            fontWeight: '800',
+            color: COLORS.primaryDark,
+          }}
+        >
+          {getInitials(profile.name ?? 'U')}
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <Modal
       transparent
@@ -473,95 +582,106 @@ export default function LeftDrawer({ visible, onClose, onLogout }: Props) {
       animationType="none"
       onRequestClose={onClose}
     >
-      <View style={leftDrawerStyles.overlay}>
+      <View style={styles.overlay}>
         <TouchableWithoutFeedback onPress={onClose}>
-          <View style={leftDrawerStyles.backdrop} />
+          <View style={styles.backdrop} />
         </TouchableWithoutFeedback>
 
         <Animated.View
-          style={[
-            leftDrawerStyles.panel,
-            { transform: [{ translateX: slideAnim }] },
-          ]}
+          style={[styles.panel, { transform: [{ translateX: slideAnim }] }]}
         >
-          {/* Header */}
-          <View style={leftDrawerStyles.header}>
+          {/* ── Header ── */}
+          <View style={styles.header}>
             {/* Brand row */}
             <TouchableOpacity
-              style={leftDrawerStyles.brandRow}
+              style={styles.brandRow}
               activeOpacity={0.7}
               onPress={() => handleNavigate('Home')}
             >
-              <View style={leftDrawerStyles.brandIconWrap}>
+              <View style={styles.brandIconWrap}>
                 <Icon name="fast-food" size={22} color={COLORS.navy} />
               </View>
               <View>
-                <Text style={leftDrawerStyles.brandName}>ForkDash</Text>
-                <Text style={leftDrawerStyles.brandSub}>
-                  Delivered with love 💛
-                </Text>
+                <Text style={styles.brandName}>ForkDash</Text>
+                <Text style={styles.brandSub}>Delivered with love 💛</Text>
               </View>
             </TouchableOpacity>
 
             {/* User card */}
             <TouchableOpacity
-              style={leftDrawerStyles.userCard}
+              style={styles.userCard}
               activeOpacity={0.7}
               onPress={() => handleNavigate('Profile')}
             >
-              <View style={leftDrawerStyles.avatarCircle}>
-                <Icon name="person" size={22} color={COLORS.primaryDark} />
+              {/* Large avatar (44px) in the user card */}
+              <AvatarSmall size={44} />
+
+              <View style={styles.userInfo}>
+                <Text style={styles.userName} numberOfLines={1}>
+                  {profile.name}
+                </Text>
+                <Text style={styles.userEmail} numberOfLines={1}>
+                  {profile.email}
+                </Text>
               </View>
-              <View style={leftDrawerStyles.userInfo}>
-                <Text style={leftDrawerStyles.userName}>Oliver Smith</Text>
-                <Text style={leftDrawerStyles.userEmail}>oliver@email.com</Text>
-              </View>
-              <View style={leftDrawerStyles.proBadge}>
-                <Text style={leftDrawerStyles.proBadgeText}>PRO</Text>
-              </View>
+
+              {profile.isPro && (
+                <View style={styles.proBadge}>
+                  <Text style={styles.proBadgeText}>PRO</Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
 
-          {/* Menu */}
-          <View style={leftDrawerStyles.menuSection}>
-            <Text style={leftDrawerStyles.sectionLabel}>MENU</Text>
-            {MENU_ITEMS.map(item => (
-              <TouchableOpacity
-                key={item.label}
-                style={leftDrawerStyles.menuItem}
-                activeOpacity={0.7}
-                onPress={() => handleNavigate(item.route)}
-              >
-                <View
-                  style={[
-                    leftDrawerStyles.itemIconWrap,
-                    { backgroundColor: item.color + '18' },
-                  ]}
+          {/* ── Menu ── */}
+          <View style={styles.menuSection}>
+            <Text style={styles.sectionLabel}>MENU</Text>
+            {MENU_ITEMS.map(item => {
+              const isProfileItem = item.label === 'Profile';
+
+              return (
+                <TouchableOpacity
+                  key={item.label}
+                  style={styles.menuItem}
+                  activeOpacity={0.7}
+                  onPress={() => handleNavigate(item.route)}
                 >
-                  {item.iconLib === 'ionicon' ? (
-                    <Icon name={item.icon} size={18} color={item.color} />
+                  {/* Profile row: show real avatar instead of generic icon */}
+                  {isProfileItem ? (
+                    <View style={styles.menuProfileAvatarWrap}>
+                      <AvatarSmall size={36} />
+                    </View>
                   ) : (
-                    <MaterialIcon
-                      name={item.icon}
-                      size={18}
-                      color={item.color}
-                    />
+                    <View
+                      style={[
+                        styles.itemIconWrap,
+                        { backgroundColor: item.color + '18' },
+                      ]}
+                    >
+                      {item.iconLib === 'ionicon' ? (
+                        <Icon name={item.icon} size={18} color={item.color} />
+                      ) : (
+                        <MaterialIcon
+                          name={item.icon}
+                          size={18}
+                          color={item.color}
+                        />
+                      )}
+                    </View>
                   )}
-                </View>
-                <Text style={leftDrawerStyles.itemLabel}>{item.label}</Text>
-                <Icon name="chevron-forward" size={16} color="#CBD5E1" />
-              </TouchableOpacity>
-            ))}
+
+                  <Text style={styles.itemLabel}>{item.label}</Text>
+                  <Icon name="chevron-forward" size={16} color="#CBD5E1" />
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
-          {/* Footer */}
-          <View style={leftDrawerStyles.footer}>
-            <TouchableOpacity
-              style={leftDrawerStyles.logoutBtn}
-              onPress={handleLogout}
-            >
+          {/* ── Footer ── */}
+          <View style={styles.footer}>
+            <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
               <Icon name="log-out-outline" size={18} color={COLORS.red} />
-              <Text style={leftDrawerStyles.logoutText}>Log Out</Text>
+              <Text style={styles.logoutText}>Log Out</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -570,15 +690,9 @@ export default function LeftDrawer({ visible, onClose, onLogout }: Props) {
   );
 }
 
-const leftDrawerStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
+const styles = StyleSheet.create({
+  overlay: { flex: 1, flexDirection: 'row' },
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
   panel: {
     position: 'absolute',
     left: 0,
@@ -635,14 +749,6 @@ const leftDrawerStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(185, 169, 110, 0.18)',
   },
-  avatarCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(245,197,24,0.18)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   userInfo: {
     marginLeft: 12,
     flex: 1,
@@ -696,6 +802,15 @@ const leftDrawerStyles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // wrapper keeps the 36px avatar perfectly aligned with other icon wraps
+  menuProfileAvatarWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
