@@ -9,13 +9,16 @@ import {
   StyleSheet,
   ImageBackground,
 } from 'react-native';
+
 import Ionicons from 'react-native-vector-icons/Ionicons';
+
 import CategoryCard from './Categorycard';
-<<<<<<< HEAD
-import heroImage from "../../../../assets/HomeScreen/home-header-bg.jpg";
-=======
+
+// ✅ Fixed: using require() instead of import — same pattern as GetStartedScreen
+const heroImage = require('../../../../assets/HomeScreen/home-header-bg.jpg');
+
+// ✅ Redux selector import
 import { useAppSelector } from '../profile/store';
->>>>>>> profile
 
 const C = {
   primary: '#F5C518',
@@ -70,14 +73,17 @@ const CATEGORIES = [
   },
 ];
 
-// ── helpers ───────────────────────────────────────────────────────────────────
+// ── helpers ─────────────────────────────────────────────
+
 function getFirstName(fullName: string): string {
   return fullName.trim().split(' ')[0] ?? 'there';
 }
 
 function getInitials(name: string): string {
   const parts = name.trim().split(' ').filter(Boolean);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
   return parts[0]?.[0]?.toUpperCase() ?? '?';
 }
 
@@ -108,11 +114,13 @@ export default function HeroHeader({
   cartCount,
 }: Props) {
   const [showAllCats, setShowAllCats] = useState(false);
+
   const VISIBLE_CATS = showAllCats ? CATEGORIES : CATEGORIES.slice(0, 6);
 
-  // ── read live profile from Redux ──────────────────────────────────────────
+  // ✅ Redux profile data
   const profile = useAppSelector((state: any) => state.profile);
-  const firstName = getFirstName(profile.name ?? 'there');
+
+  const firstName = getFirstName(profile?.name ?? 'there');
   const greeting = getGreeting();
 
   const handleSeeAll = () => {
@@ -122,12 +130,7 @@ export default function HeroHeader({
 
   return (
     <View style={S.headerBg}>
-       
-      <ImageBackground
-        source={heroImage}
-        blurRadius={1}
-        resizeMode="cover"
-      >
+      <ImageBackground source={heroImage} blurRadius={1} resizeMode="cover">
         {/* ── NAVBAR ── */}
         <View style={S.navbar}>
           <View style={S.navLeft}>
@@ -136,16 +139,18 @@ export default function HeroHeader({
               <View style={[S.hLine, { width: 18 }]} />
               <View style={[S.hLine, { width: 14 }]} />
             </TouchableOpacity>
+
             <View style={{ marginLeft: 10 }}>
               <View style={S.row}>
                 <Ionicons name="location-sharp" size={12} color={C.primary} />
                 <Text style={S.deliveringTo}>Delivering to</Text>
                 <Text style={{ color: C.primary, fontSize: 10 }}>▾</Text>
               </View>
+
               <Text style={S.locationText}>
-                {profile.city && profile.state
+                {profile?.city && profile?.state
                   ? `${profile.city}, ${profile.state}`
-                  : profile.city || profile.state || 'Mayfair, London'}
+                  : profile?.city || profile?.state || 'Mayfair, London'}
               </Text>
             </View>
           </View>
@@ -160,13 +165,13 @@ export default function HeroHeader({
               )}
             </TouchableOpacity>
 
-            {/* Avatar: real photo OR initials fallback */}
-            {profile.avatar ? (
+            {/* Avatar */}
+            {profile?.avatar ? (
               <Image source={{ uri: profile.avatar }} style={S.avatarImg} />
             ) : (
               <View style={S.avatarFallback}>
                 <Text style={S.avatarInitials}>
-                  {getInitials(profile.name ?? 'U')}
+                  {getInitials(profile?.name ?? 'U')}
                 </Text>
               </View>
             )}
@@ -178,10 +183,12 @@ export default function HeroHeader({
           <Text style={S.greeting}>
             {greeting}, {firstName} 👋
           </Text>
+
           <Text style={S.heroTitle}>
             Hungry? Discover{'\n'}
             <Text style={{ color: C.primary }}>2,400+ dishes</Text> near you.
           </Text>
+
           <View style={S.promoPill}>
             <Text style={S.promoText}>
               🎉{' '}
@@ -233,6 +240,7 @@ export default function HeroHeader({
               </Text>
             </TouchableOpacity>
           </View>
+
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -250,6 +258,7 @@ export default function HeroHeader({
                 onPress={() => onCatPress(cat.id)}
               />
             ))}
+
             {!showAllCats && (
               <TouchableOpacity
                 style={S.moreCatBtn}
@@ -270,46 +279,14 @@ export default function HeroHeader({
 }
 
 const S = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center' },
-
-  headerBg: { position: 'relative', overflow: 'hidden' },
-  bgBase: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: C.navy,
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  bgGlowTopLeft: {
-    position: 'absolute',
-    top: -80,
-    left: -50,
-    width: 260,
-    height: 260,
-    borderRadius: 130,
-    backgroundColor: 'rgba(245,197,24,0.13)',
+  headerBg: {
+    position: 'relative',
+    overflow: 'hidden',
   },
-  bgGlowBottomRight: {
-    position: 'absolute',
-    bottom: -40,
-    right: -30,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(245,197,24,0.09)',
-  },
-  bgGlowCenter: {
-    position: 'absolute',
-    top: '35%',
-    left: '50%',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(245,197,24,0.05)',
-  },
-
-  // Navbar
   navbar: {
     paddingHorizontal: 14,
     paddingTop: 48,
@@ -318,7 +295,10 @@ const S = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  navLeft: { flexDirection: 'row', alignItems: 'center' },
+  navLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   hamburgerBtn: {
     width: 40,
     height: 40,
@@ -331,7 +311,12 @@ const S = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.15)',
   },
-  hLine: { width: 22, height: 2.5, backgroundColor: C.white, borderRadius: 2 },
+  hLine: {
+    width: 22,
+    height: 2.5,
+    backgroundColor: C.white,
+    borderRadius: 2,
+  },
   deliveringTo: {
     fontSize: 10,
     color: C.primary,
@@ -368,9 +353,11 @@ const S = StyleSheet.create({
     borderWidth: 2,
     borderColor: C.white,
   },
-  cartBadgeText: { color: C.white, fontSize: 9, fontWeight: '900' },
-
-  // Avatar — real photo
+  cartBadgeText: {
+    color: C.white,
+    fontSize: 9,
+    fontWeight: '900',
+  },
   avatarImg: {
     width: 40,
     height: 40,
@@ -378,7 +365,6 @@ const S = StyleSheet.create({
     borderWidth: 2,
     borderColor: C.primary,
   },
-  // Avatar — initials fallback
   avatarFallback: {
     width: 40,
     height: 40,
@@ -394,9 +380,11 @@ const S = StyleSheet.create({
     fontWeight: '900',
     color: C.primary,
   },
-
-  // Greeting
-  headerContent: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 18 },
+  headerContent: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 18,
+  },
   greeting: {
     fontSize: 12,
     color: 'rgba(255,255,255,0.55)',
@@ -420,9 +408,11 @@ const S = StyleSheet.create({
     paddingVertical: 8,
     alignSelf: 'flex-start',
   },
-  promoText: { fontSize: 11, color: '#FFF9C4', fontWeight: '600' },
-
-  // Search
+  promoText: {
+    fontSize: 11,
+    color: '#FFF9C4',
+    fontWeight: '600',
+  },
   searchRow: {
     flexDirection: 'row',
     gap: 8,
@@ -440,12 +430,27 @@ const S = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.61)',
   },
-  searchInput: { flex: 1, fontSize: 13, color: C.white, fontWeight: '500' },
-
-  // Categories
-  catSectionTitle: { fontSize: 15, fontWeight: '900', color: C.white },
-  seeAllCat: { fontSize: 12, color: C.primary, fontWeight: '700' },
-  catLabel: { fontSize: 10, fontWeight: '800', textAlign: 'center' },
+  searchInput: {
+    flex: 1,
+    fontSize: 13,
+    color: C.white,
+    fontWeight: '500',
+  },
+  catSectionTitle: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: C.white,
+  },
+  seeAllCat: {
+    fontSize: 12,
+    color: C.primary,
+    fontWeight: '700',
+  },
+  catLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
   moreCatBtn: {
     flexDirection: 'column',
     alignItems: 'center',
