@@ -146,7 +146,7 @@ const SignupScreen: React.FC = () => {
           >
             <Text style={styles.signup_cardTitle}>Create Account</Text>
             <Text style={styles.signup_cardSubtitle}>
-              Sign up to start ordering 🍕
+              Sign up to start ordering
             </Text>
 
             <SectionDivider label="Personal Info" />
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
   },
   signup_card: {
     width: width - 32,
-    backgroundColor: 'rgba(255, 255, 255, 0.13)',
+    backgroundColor: 'rgba(255, 255, 255, 0.10)',
     borderRadius: 28,
     paddingHorizontal: 24,
     paddingVertical: 32,
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
   },
   signup_termsText: {
     fontSize: 12,
-    color: 'rgba(253, 238, 160, 0.55)',
+    color: COLORS.border,
     textAlign: 'center',
     marginBottom: 22,
     marginTop: 6,
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
   },
   signup_loginText: {
     fontSize: 14,
-    color: 'rgba(253, 238, 160, 0.55)',
+    color: COLORS.border,
   },
   signup_loginLink: {
     fontSize: 14,

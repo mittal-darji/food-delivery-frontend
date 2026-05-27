@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
   },
   login_card: {
     width: width - 32,
-    backgroundColor: 'rgba(255, 255, 255, 0.13)',
+    backgroundColor: 'rgba(255, 255, 255, 0.10)',
     borderRadius: 28,
     paddingHorizontal: 24,
     paddingTop: 28,
@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
   },
   login_cardSubtitle: {
     fontSize: 14,
-    color: COLORS.muted,
+    color: COLORS.border,
     marginBottom: 20,
   },
   login_divider: {
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
   },
   login_dividerText: {
     fontSize: 12,
-    color: COLORS.slate,
+    color: COLORS.border,
     marginHorizontal: 12,
     fontWeight: '500',
     letterSpacing: 0.3,

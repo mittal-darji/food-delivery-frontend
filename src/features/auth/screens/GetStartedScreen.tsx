@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   },
   getstart_subline: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.58)',
+    color: 'rgb(189, 189, 189)',
     marginTop: 12,
     lineHeight: 22,
     letterSpacing: 0.2,
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
   },
   getstart_badgeLabel: {
     fontSize: 10,
-    color: 'rgba(255,255,255,0.5)',
+    color: 'rgb(189, 189, 189)',
     letterSpacing: 0.3,
   },
   getstart_badgeDivider: {
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
     fontSize: 13,
-    color: 'rgba(255,255,255,0.45)',
+    color: 'rgb(189, 189, 189)',
   },
   getstart_bottomNoteLink: {
     color: GOLD,

@@ -36,7 +36,7 @@ export const COLORS = {
   ink: '#1A1033',
   slate: '#4A5568',
   muted: '#8C96A3',
-  border: '#EDF0F4',
+  border: '#BCCCDC',
   white: '#FFFFFF',
   cardBg: '#FFFFFF',
   bgLight: '#FEFDDF',
