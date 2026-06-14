@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { C } from './Uiatoms';
 
+// ✅ Removed useNavigation — was bypassing onViewCart prop and losing cartItems
 interface CartBarProps {
   cartCount: number;
   totalAmount: number;
@@ -20,8 +21,18 @@ const CartBar = ({ cartCount, totalAmount, onViewCart }: CartBarProps) => {
         </Text>
         <Text style={styles.cartBarSub}>Free delivery above ₹199</Text>
       </View>
-      <TouchableOpacity style={styles.viewCartBtn} onPress={onViewCart} activeOpacity={0.85}>
-        <Ionicons name="cart" size={16} color={C.ink} style={{ marginRight: 6 }} />
+
+      <TouchableOpacity
+        style={styles.viewCartBtn}
+        onPress={onViewCart} // ✅ uses prop — carries cartItems via navigation.push
+        activeOpacity={0.85}
+      >
+        <Ionicons
+          name="cart"
+          size={16}
+          color={C.ink}
+          style={{ marginRight: 6 }}
+        />
         <Text style={styles.viewCartText}>View Cart</Text>
         <View style={styles.cartNumBadge}>
           <Text style={styles.cartNumText}>{cartCount}</Text>
