@@ -8,68 +8,122 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import { C, MenuItem, HOTEL } from '../components/Uiatoms';
-import HotelInfoCard from '../components/Hotelinfocard';  
+import HotelInfoCard from '../components/Hotelinfocard';
 import MenuItemCard from '../components/Menuitemcard';
 import MenuFAB from '../components/Menufab';
 import CartBar from '../components/Cartbar';
 import FoodItemDrawer from './FooditemdrawerScreen';
 import FullMenuDrawer from './FullmenudrawerScreen';
 
-export default function HotelFoodMenuScreen({ route }: any) {
-  console.log('HotelFoodMenuScreen rendered with route params:', route?.params);
-  const { initialItem } = route?.params || {};
-  const navigation = useNavigation();
+export interface CartItem {
+  id: string;
+  name: string;
+  restaurant: string;
+  price: number;
+  image?: string;
+  emoji?: string;
+  customization: string;
+  qty: number;
+  rating: number;
+  isVeg: boolean;
+  tag?: string;
+}
 
-  // ── State ──────────────────────────────────────────────────────────────────
-  const [cartItems, setCartItems] = useState<{ [key: string]: number }>({});
+export default function HotelFoodMenuScreen({ route }: any) {
+  const navigation = useNavigation<any>();
+  const { initialItem } = route?.params || {};
+
+  // ── cart state ─────────────────────────────────────────────────────────────
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+
+  // ── local UI state ─────────────────────────────────────────────────────────
   const [wishlist, setWishlist] = useState<string[]>([]);
-  const [drawerItem, setDrawerItem] = useState<MenuItem | null>(initialItem ?? null);
+  const [drawerItem, setDrawerItem] = useState<MenuItem | null>(
+    initialItem ?? null,
+  );
   const [itemDrawerVisible, setItemDrawerVisible] = useState(!!initialItem);
   const [menuDrawerVisible, setMenuDrawerVisible] = useState(false);
 
-  // ── Derived ────────────────────────────────────────────────────────────────
-  const cartCount = Object.values(cartItems).reduce((a, b) => a + b, 0);
-  const totalAmount = HOTEL.menuItems.reduce(
-    (sum, item) => sum + (cartItems[item.name] || 0) * item.price,
-    0,
-  );
+  // ── derived ────────────────────────────────────────────────────────────────
+  const cartCount = cartItems.reduce((s, i) => s + i.qty, 0);
+  const totalAmount = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
 
-  // ── Handlers ───────────────────────────────────────────────────────────────
+  // ── add to cart ────────────────────────────────────────────────────────────
   const addToCart = (item: MenuItem, qty: number = 1) => {
-    setCartItems(prev => ({ ...prev, [item.name]: (prev[item.name] || 0) + qty }));
+    setCartItems(prev => {
+      const id = String((item as any).id ?? item.name);
+      const existing = prev.find(i => i.id === id);
+      if (existing) {
+        return prev.map(i => (i.id === id ? { ...i, qty: i.qty + qty } : i));
+      }
+      return [
+        ...prev,
+        {
+          id,
+          name: item.name,
+          restaurant: HOTEL.name,
+          price: item.price,
+          image: (item as any).image,
+          emoji: (item as any).emoji,
+          customization: (item as any).customization ?? '',
+          qty,
+          rating: (item as any).rating ?? 4.5,
+          isVeg: (item as any).isVeg ?? false,
+          tag: (item as any).tag,
+        },
+      ];
+    });
   };
 
-  const toggleWishlist = (item: MenuItem) => {
+  const toggleWishlist = (item: MenuItem) =>
     setWishlist(prev =>
-      prev.includes(item.name) ? prev.filter(n => n !== item.name) : [...prev, item.name],
+      prev.includes(item.name)
+        ? prev.filter(n => n !== item.name)
+        : [...prev, item.name],
     );
-  };
 
   const openItemDrawer = (item: MenuItem) => {
     setDrawerItem(item);
     setItemDrawerVisible(true);
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── navigate to cart — pass items AND a callback to sync back ──────────────
+  const handleViewCart = () => {
+    navigation.navigate('Cart', {
+      cartItems,
+      // CartScreen calls this when it goes back so HotelFoodMenuScreen stays in sync
+      onCartUpdate: (updatedItems: CartItem[]) => {
+        setCartItems(updatedItems);
+      },
+    });
+  };
+
+  // ── render ─────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bgLight }}>
       <StatusBar barStyle="light-content" backgroundColor={C.navy} />
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* ── Back button — real Ionicon ── */}
-        <TouchableOpacity style={styles.topBtnLeft} onPress={() => navigation.goBack()}>
+        <TouchableOpacity
+          style={styles.topBtnLeft}
+          onPress={() => navigation.goBack()}
+        >
           <Ionicons name="arrow-back" size={24} color={C.ink} />
         </TouchableOpacity>
 
         <HotelInfoCard hotel={HOTEL} />
 
-        {/* ── Menu list ── */}
         <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
-          <View style={[styles.row, { justifyContent: 'space-between', marginBottom: 14 }]}>
+          <View
+            style={[
+              styles.row,
+              { justifyContent: 'space-between', marginBottom: 14 },
+            ]}
+          >
             <Text style={styles.sectionTitle}>Menu Highlights</Text>
             <TouchableOpacity
               style={styles.seeAllBtn}
@@ -77,7 +131,11 @@ export default function HotelFoodMenuScreen({ route }: any) {
               activeOpacity={0.8}
             >
               <Text style={styles.seeAllText}>Full Menu</Text>
-              <Ionicons name="chevron-forward" size={12} color={C.primaryDark} />
+              <Ionicons
+                name="chevron-forward"
+                size={12}
+                color={C.primaryDark}
+              />
             </TouchableOpacity>
           </View>
 
@@ -85,7 +143,11 @@ export default function HotelFoodMenuScreen({ route }: any) {
             <MenuItemCard
               key={idx}
               item={item}
-              cartQty={cartItems[item.name] ?? 0}
+              cartQty={
+                cartItems.find(
+                  c => c.id === String((item as any).id ?? item.name),
+                )?.qty ?? 0
+              }
               isWishlisted={wishlist.includes(item.name)}
               onPress={() => openItemDrawer(item)}
               onAddToCart={() => addToCart(item)}
@@ -106,7 +168,7 @@ export default function HotelFoodMenuScreen({ route }: any) {
       <CartBar
         cartCount={cartCount}
         totalAmount={totalAmount}
-        onViewCart={() => {/* navigate to cart */}}
+        onViewCart={handleViewCart}
       />
 
       <FoodItemDrawer
@@ -128,12 +190,7 @@ export default function HotelFoodMenuScreen({ route }: any) {
 }
 
 const styles = StyleSheet.create({
-  topBtnLeft: {
-    margin: 16,
-    width: 40,
-    height: 20,
-   
-  },
+  topBtnLeft: { margin: 16, width: 40, height: 20 },
   row: { flexDirection: 'row', alignItems: 'center' },
   sectionTitle: { fontSize: 16, fontWeight: '800', color: C.ink },
   seeAllBtn: {

@@ -8,6 +8,7 @@ import ForgotPasswordScreen from './src/features/auth/screens/ForgotPasswordScre
 
 import HomeScreen from './src/features/home/screens/HomeScreen';
 import HotelFoodMenuScreen from './src/features/HotelFoodMenu/screens/HotelFoodMenuScreen';
+import CartScreen from './src/features/cart/screens/CartScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -45,7 +46,17 @@ function App() {
           options={{ headerShown: false }}
         />
 
-        <Stack.Screen name="HotelFoodMenu" component={HotelFoodMenuScreen} options={{headerShown: false}} />
+        <Stack.Screen
+          name="HotelFoodMenu"
+          component={HotelFoodMenuScreen}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="Cart"
+          component={CartScreen}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
